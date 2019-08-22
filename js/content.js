@@ -4,10 +4,17 @@ chrome.runtime.onMessage.addListener(
     }
 );
 chrome.storage.local.get('bitcointalk', function (storage) {
-    Object.keys(storage.bitcointalk).map(function (key) {
-        Bitcointalk.init(key, storage.bitcointalk[key], 1);
-    });
+    if (typeof Object.keys(storage) !== 'undefined' && Object.keys(storage).length > 0) {
+        Object.keys(storage.bitcointalk).map(function (key) {
+            Bitcointalk.init(key, storage.bitcointalk[key], 1);
+        });
+    }
+    
 });
+
+// chrome.storage.local.clear(function(obj){
+//     console.log("cleared");
+// });
 
 const Bitcointalk = {
     init: function (key, value, event) {
@@ -32,8 +39,13 @@ const Bitcointalk = {
     },
     setStorage: function (key, value) {
         chrome.storage.local.get('bitcointalk', function (storage) {
-            let newStorage = storage.bitcointalk;
+            let newStorage = {};
+            if (typeof Object.keys(storage) !== 'undefined' && Object.keys(storage).length > 0) {
+                newStorage = storage.bitcointalk;
+                
+            }
             newStorage[key] = value;
+            
             chrome.storage.local.set({'bitcointalk': newStorage});
         });
     },

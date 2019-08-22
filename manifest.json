@@ -1,26 +1,33 @@
 {
   "name": "Bitcointalk Extension",
   "short_name": "Bitcointalk-Extension",
-  "version": "1.1",
+  "version": "1.5",
   "manifest_version": 2,
   "description": "An extension is only for Bitcointalk",
   "icons": {
-    "16": "icon/icon-16x16.png",
-    "32": "icon/icon-32x32.png",
-    "48": "icon/icon-48x48.png",
-    "72": "icon/icon-72x72.png",
-    "128": "icon/icon-128x128.png",
-    "144": "icon/icon-144x144.png"
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   },
   "browser_action": {
     "default_title": "Bitcointalk Extension",
     "default_popup": "popup.html",
-    "default_icon": "icon/icon-48x48.png"
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
   },
   "content_scripts": [
     {
-      "matches": ["*://*.bitcointalk.org/*"],
-      "js": ["js/jquery-3.3.1.min.js","js/content.js"],
+      "matches": [
+        "*://*.bitcointalk.org/*"
+      ],
+      "js": [
+        "js/content.js"
+      ],
       "run_at": "document_end",
       "all_frames": false
     }
