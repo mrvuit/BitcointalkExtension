@@ -11,11 +11,11 @@ An extension is only for Bitcointalk
 
 * Functions:
 
-- Change the theme
-- Block the signature (You can also block at: Profile -> Look and Layout Preferences)
-- Block avatar (You can also block at: Profile -> Look and Layout Preferences)
-- Open external links in a new tab
-- Change the font size
+1. Change the theme
+2. Block the signature (You can also block at: Profile -> Look and Layout Preferences)
+3. Block avatar (You can also block at: Profile -> Look and Layout Preferences)
+4. Open external links in a new tab
+5. Change the font size
 
 Current version: 1.5
 
