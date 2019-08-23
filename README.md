@@ -19,4 +19,5 @@ An extension is only for Bitcointalk
 
 Current version: 1.5
 The post on Bitcointalk: https://bitcointalk.org/index.php?topic=5178297
+
 Author: mrvuit / https://bitcointalk.org/index.php?action=profile;u=1437909
