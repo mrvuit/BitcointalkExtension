@@ -12,10 +12,6 @@ chrome.storage.local.get('bitcointalk', function (storage) {
     
 });
 
-// chrome.storage.local.clear(function(obj){
-//     console.log("cleared");
-// });
-
 const Bitcointalk = {
     init: function (key, value, event) {
         this.setStorage(key, value);
