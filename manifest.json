@@ -1,9 +1,9 @@
 {
-  "name": "Bitcointalk Extension",
-  "short_name": "Bitcointalk-Extension",
-  "version": "1.5",
+  "name": "Bitcointalk Script",
+  "short_name": "Bitcointalk-Script",
+  "version": "1.7",
   "manifest_version": 2,
-  "description": "An extension is only for Bitcointalk",
+  "description": "Extension specific to Bitcointalk - Synthesis script, all in one",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -11,7 +11,7 @@
     "128": "icons/icon128.png"
   },
   "browser_action": {
-    "default_title": "Bitcointalk Extension",
+    "default_title": "Bitcointalk Script",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
