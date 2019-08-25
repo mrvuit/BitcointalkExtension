@@ -60,7 +60,7 @@ const Bitcointalk = {
     externalLink: function () {
         let externalLink = document.getElementsByTagName("a");
         for (let i = 0; i < externalLink.length; i++) {
-            if (!externalLink[i].href.includes("https://bitcointalk.org")) {
+            if (!externalLink[i].href.includes("https://bitcointalk.org") && externalLink[i].href.includes("http")) {
                 externalLink[i].setAttribute('target', "_blank");
             }
         }
