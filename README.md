@@ -21,18 +21,6 @@ An extension is only for Bitcointalk
 - Highlight your username in merit (Always on)
 - Show icon go to top (Always on)
 
-# Change log :
+*The post on Bitcointalk: https://bitcointalk.org/index.php?topic=5178297
 
-* Version 2.0 (26/08/2019):
-  Pin multiple posts and comment
-
-* Version 2.3 (26/08/2019):
-
-- Show total merit (Author: hatshepsut93 https://bitcointalk.org/index.php?topic=5148488.msg52264117#msg52264117)
-- Highlight your username in merit, sort your username to first  (Author: hatshepsut93 https://bitcointalk.org/index.php?topic=5176834.msg52267547#msg52267547)
-- Show icon go to top
-- Fix some bug
-
-The post on Bitcointalk: https://bitcointalk.org/index.php?topic=5178297
-
-Author: mrvuit / https://bitcointalk.org/index.php?action=profile;u=1437909
+*Author: mrvuit / https://bitcointalk.org/index.php?action=profile;u=1437909
