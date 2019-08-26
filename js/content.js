@@ -4,6 +4,11 @@ chrome.runtime.onMessage.addListener(
     }
 );
 chrome.storage.local.get('bitcointalk', function (storage) {
+    Bitcointalk.externalLink();
+    Bitcointalk.scrollToTop();
+    Bitcointalk.sumMerit();
+    Bitcointalk.highlightMyNameInMerit();
+    
     if (typeof Object.keys(storage) !== 'undefined' && Object.keys(storage).length > 0) {
         Object.keys(storage.bitcointalk).map(function (key) {
             Bitcointalk.init(key, storage.bitcointalk[key], 1);
@@ -15,7 +20,6 @@ chrome.storage.local.get('bitcointalk', function (storage) {
 const Bitcointalk = {
     init: function (key, value, event) {
         this.setStorage(key, value);
-        this.externalLink();
         switch (key) {
             case  "signature":
                 this.toggleSignature(value);
@@ -219,10 +223,16 @@ const Bitcointalk = {
         let listPostsHtml = [];
         for (let i = 0; i < currentListPost.length; i++) {
             
+            let msgId = (currentListPost[i].url.includes("#msg") ? currentListPost[i].url.split("#")[1] : '');
+            
             listPostsHtml.push([
                 '<tr>',
                 '<td class="windowbg" valign="middle">',
                 '<b><a href="' + currentListPost[i].url + '">' + currentListPost[i].title + '</a></b>',
+                msgId !== '' ? "#" + msgId : '',
+                '</td>',
+                '<td class="windowbg">',
+                msgId !== '' ? 'Comment in post' : 'Post',
                 '</td>',
                 '<td class="windowbg removePostPins" style="cursor:pointer;display: flex;align-items: center" valign="middle" data-url="' + currentListPost[i].url + '">',
                 '<img src="' + minusIcon + '" height="16" width="16" alt="minus-icon"/>',
@@ -240,10 +250,11 @@ const Bitcointalk = {
         postsPinned.innerHTML = `<div class="tborder">
                                         <table border="0" width="100%" cellspacing="1" cellpadding="4" class="bordercolor">
                                             <tbody>
-                                                <tr> <td class="catbg">Posts pinned</td> <td class="catbg">Action</td> </tr>
+                                                <tr> <td class="catbg">Posts and comment pinned</td> <td class="catbg">Type</td> <td class="catbg">Action</td> </tr>
                                                 ${listPostsHtml.join("")}
                                                 <tr>
-                                                    <td class="windowbg">Total: ${listPostsHtml.length} post</td>
+                                                    <td class="windowbg">Total: ${listPostsHtml.length} post & comment</td>
+                                                    <td class="windowbg"></td>
                                                     <td class="windowbg removeAllPostPins" style="cursor:pointer;display: flex;align-items: center" >
                                                         <img src="${minusIcon}" height="16" width="16" alt="minus-icon"/>
                                                         <a style="margin-left: 5px;" href="javascript:void(0)"> Remove All </a>
@@ -292,6 +303,9 @@ const Bitcointalk = {
             pinsPostSpan[i].remove();
         }
         if (value === "off") {
+            if(document.getElementsByClassName("postsPinned").length > 0) {
+                document.getElementsByClassName("postsPinned")[0].remove();
+            }
             return;
         }
         
@@ -352,6 +366,63 @@ const Bitcointalk = {
                 }
             }
         });
+    },
+    scrollToTop: function () {
+        let toTop = chrome.runtime.getURL(`icons/to-top.png`);
+        let divNode = document.createElement("div");
+        divNode.style = "display: none;position: fixed;bottom: 20px;right: 30px;z-index: 99;cursor: pointer;padding: 15px;border-radius: 4px;";
+        divNode.innerHTML = `<img src="${toTop}" alt="to-top" height="36"/>`;
+        document.getElementById('footerarea').appendChild(divNode);
+        
+        window.onscroll = function() {
+            if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+                divNode.style.display = "block";
+            } else {
+                divNode.style.display = "none";
+            }
+        };
+        divNode.getElementsByTagName("img")[0].addEventListener("click", () => {
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+        });
+    },
+    sumMerit: function () {
+        [...document.querySelectorAll(".td_headerandpost")].forEach(post => {
+            try {
+                let sum = [...post.querySelectorAll(".smalltext i > a")]
+                    .map(e => {
+                        return parseInt(e.nextSibling.textContent.match(/\((.*)\)/)[1])
+                    })
+                    .reduce((acc, e) => acc + e, 0)
+                if (sum > 0) {
+                    let sumElement = document.createElement("span")
+                    sumElement.style["font-weight"] = "bold";
+                    sumElement.textContent = `Total merit: ${sum} | `
+                    post.querySelector(".smalltext i").prepend(sumElement)
+                }
+            } catch (e) {
+                console.error(e)
+            }
+        })
+    },
+    highlightMyNameInMerit: function () {
+        [...document.querySelectorAll(".td_headerandpost")].forEach(post => {
+            let myName = document.querySelector("#hellomember b").textContent;
+            let allMerits = [...post.querySelectorAll(".smalltext i > a")];
+            let myMerit = allMerits.find(e => e.textContent === myName);
+            if (myMerit) {
+                myMerit.style["font-weight"] = "bold";
+                if (allMerits.indexOf(myMerit) !== 0) {
+                    let myScore = myMerit.nextSibling;
+                    post.querySelector(".smalltext i").removeChild(myMerit);
+                    post.querySelector(".smalltext i").removeChild(myScore);
+                    allMerits[0].before(myScore);
+                    if(allMerits.length > 0)
+                    myScore.after(document.createElement("div").innerHTML=", ");
+                    myScore.before(myMerit)
+                }
+            }
+        })
     }
 };
 
