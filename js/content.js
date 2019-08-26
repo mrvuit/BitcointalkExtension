@@ -292,7 +292,6 @@ const Bitcointalk = {
             pinsPostSpan[i].remove();
         }
         if (value === "off") {
-            this.setStorage('list-post', []);
             return;
         }
         
