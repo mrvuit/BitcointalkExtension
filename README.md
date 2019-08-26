@@ -1,15 +1,15 @@
 # Bitcointalk Extension
 An extension is only for Bitcointalk
 
-* Install:
+# Install:
 - Chrome Webstore: https://chrome.google.com/webstore/detail/bitcointalk-script/ebkdbmfcjnnpoplaphlokgpehbddamcn
 
-* Info:
+# Info:
 - Open source: https://github.com/mrvuit/BitcointalkExtension
 - Can be installed on all browsers with Chromemui core: Chrome, Brave, Microsoft Edge... (I will try with Firefox in the future.)
 - Latest version: 2.3
 
-* Features:
+# Features:
 - Change the theme
 - Block the signature
 - Block avatar
@@ -21,10 +21,10 @@ An extension is only for Bitcointalk
 - Highlight your username in merit (Always on)
 - Show icon go to top (Always on)
 
-* Change log :
+# Change log :
 
 * Version 2.0 (26/08/2019):
-- Pin multiple posts and comment
+  Pin multiple posts and comment
 
 * Version 2.3 (26/08/2019):
 
