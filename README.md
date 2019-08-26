@@ -26,4 +26,5 @@ This extension summarizes the features that members prefer, making it easier for
 - Show icon go to top (Always on)
 
 The post on Bitcointalk: https://bitcointalk.org/index.php?topic=5178297
+
 Author: mrvuit / https://bitcointalk.org/index.php?action=profile;u=1437909
