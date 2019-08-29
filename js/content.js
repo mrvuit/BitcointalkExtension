@@ -8,6 +8,7 @@ chrome.storage.local.get('bitcointalk', function (storage) {
     Bitcointalk.scrollToTop();
     Bitcointalk.sumMerit();
     Bitcointalk.highlightMyNameInMerit();
+    Bitcointalk.enhancedReportToModeratorUI();
     
     if (typeof Object.keys(storage) !== 'undefined' && Object.keys(storage).length > 0) {
         Object.keys(storage.bitcointalk).map(function (key) {
@@ -61,6 +62,11 @@ const Bitcointalk = {
             console.log("cleared");
         });
     },
+    httpGet: function (theUrl, callback) {
+        fetch(theUrl).then(response => response.text()).then(html => {
+           callback(html);
+        });
+    },
     externalLink: function () {
         let externalLink = document.getElementsByTagName("a");
         for (let i = 0; i < externalLink.length; i++) {
@@ -74,14 +80,14 @@ const Bitcointalk = {
         if (styleOld.length > 0) {
             styleOld[0].remove();
         }
-        
         if (value !== "on" && !isNaN(parseInt(value))) {
             let urlCss = chrome.runtime.getURL(`css/bitcointalk/${value}.css`);
             fetch(urlCss).then(response => response.text()).then(css => {
                 let style = document.createElement("style");
-                document.body.appendChild(style);
+                let head = document.querySelector("head") || document.head || document.documentElement;
                 style.className = "bitcointalk-css-inject";
                 style.innerHTML = css;
+                head.appendChild(style);
             });
         }
     },
@@ -129,86 +135,100 @@ const Bitcointalk = {
             if (merit.length === 0) {
                 return;
             }
-            
-            for (let i = 0; i < merit.length; i++) {
-                let msgId = /msg=([0-9]+)/.exec(merit[i].href)[1];
-                merit[i].setAttribute('data-href', merit[i].getAttribute('href'));
-                merit[i].setAttribute('href', "javascript:void(0)");
-                
-                merit[i].getElementsByTagName("span")[0].setAttribute("class", "openMerit");
-                merit[i].getElementsByTagName("span")[0].setAttribute("id", "open" + msgId);
-                
-                merit[i].getElementsByTagName("span")[0].addEventListener("click", function (e) {
-                    e.preventDefault();
-                    nodeForm.querySelectorAll("div[class^=result]")[0].style.display = "none";
-                    if (document.getElementById('merit' + msgId).style.display === "block") {
-                        document.getElementById('merit' + msgId).style.display = "none";
-                    } else {
-                        document.getElementById('merit' + msgId).style.display = "block";
-                    }
-                });
-                
-                let nodeForm = document.createElement('div');
-                nodeForm.setAttribute('id', 'merit' + msgId);
-                nodeForm.innerHTML = [
-                    '<form>',
-                    '<div class="form">',
-                    '<div>',
-                    'Merit points: <input size="6" name="merits" step="1" value="1" type="number" autocomplete="off"/>',
-                    '</div>',
-                    '<div style="margin-top: 6px">',
-                    '<input value="Send" type="submit">',
-                    '<button type="button">Close</button>',
-                    '</div>',
-                    '</div>',
-                    '<div class="result" style="display: none">',
-                    '</div>',
-                    '<div class="loading" style="display: none">',
-                    '<span>Loading...</span>',
-                    '</div>',
-                    '</form>'
-                ].join("");
-                nodeForm.style.display = "none";
-                nodeForm.style.marginTop = "5px";
-                merit[i].parentNode.appendChild(nodeForm);
-                
-                nodeForm.getElementsByTagName('form')[0].addEventListener("submit", function (e) {
-                    e.preventDefault();
-                    nodeForm.querySelectorAll("div[class^=form]")[0].style.display = "none";
-                    nodeForm.querySelectorAll("div[class^=result]")[0].style.display = "none";
-                    nodeForm.querySelectorAll("div[class^=loading]")[0].style.display = "block";
-                    
-                    let xhttp = new XMLHttpRequest();
-                    xhttp.onreadystatechange = function () {
-                        if (this.readyState === 4 && this.status === 200) {
-                            let msgResult = "Error, please check again.";
-                            let responseResult = this.response.match(/<tr class="windowbg">(.*?)<\/tr>/s);
-                            if (responseResult !== null && responseResult[1] !== undefined) {
-                                msgResult = responseResult[1].replace(/<(.|\n|\s|\r)*?>/g, '').trim();
-                            }
-                            
-                            nodeForm.querySelectorAll("div[class^=form]")[0].style.display = "block";
-                            nodeForm.querySelectorAll("div[class^=result]")[0].style.display = "block";
-                            nodeForm.querySelectorAll("div[class^=loading]")[0].style.display = "none";
-                            
-                            if (this.response.includes("<title>An Error Has Occurred!</title>")) {
-                                nodeForm.querySelectorAll("div[class^=result]")[0].innerHTML = "<span>" + msgResult + "</span>";
-                            } else if (this.response.includes("#msg" + msgId)) {
-                                nodeForm.querySelectorAll("div[class^=result]")[0].innerHTML = "<span>Merit added.</span>";
-                            } else {
-                                nodeForm.querySelectorAll("div[class^=result]")[0].innerHTML = "<span>Server response indeterminate.</span>";
-                            }
+    
+            let sMerit = 0, totalMerit = 0;
+            this.httpGet(merit[0].getAttribute('href'), html => {
+                sMerit = /You have <b>([0-9]+)<\/b> sendable/.exec(html)[1];
+                totalMerit = /You have received a total of <b>([0-9]+)<\/b> merit./.exec(html)[1];
+    
+                for (let i = 0; i < merit.length; i++) {
+                    let msgId = /msg=([0-9]+)/.exec(merit[i].href)[1];
+        
+                    merit[i].setAttribute('data-href', merit[i].getAttribute('href'));
+                    merit[i].setAttribute('href', "javascript:void(0)");
+        
+                    merit[i].getElementsByTagName("span")[0].setAttribute("class", "openMerit");
+                    merit[i].getElementsByTagName("span")[0].setAttribute("id", "open" + msgId);
+        
+                    merit[i].getElementsByTagName("span")[0].addEventListener("click", function (e) {
+                        e.preventDefault();
+                        nodeForm.querySelectorAll("div[class^=result]")[0].style.display = "none";
+                        if (document.getElementById('merit' + msgId).style.display === "block") {
+                            document.getElementById('merit' + msgId).style.display = "none";
+                        } else {
+                            document.getElementById('merit' + msgId).style.display = "block";
                         }
-                    };
-                    xhttp.open("POST", "https://bitcointalk.org/index.php?action=merit", true);
-                    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-                    xhttp.send("msgID=" + msgId + "&sc=" + sesc + "&merits=" + e.target.elements["merits"].value);
-                });
-                nodeForm.getElementsByTagName("button")[0].addEventListener("click", function () {
-                    nodeForm.style.display = "none";
-                    nodeForm.querySelectorAll("div[class^=result]")[0].style.display = "none";
-                });
-            }
+                    });
+        
+                    let nodeForm = document.createElement('tr');
+                    nodeForm.innerHTML = [
+                        '<td colspan="3" align="right">',
+                        `<div id="${'merit' + msgId}" style="display: none; margin-top: 5px; padding: 3px;">`,
+                        '<form>',
+                        '<div class="form">',
+                        '<div>',
+                        `Total merit: <b>${totalMerit}</b> / sMerit: <b>${sMerit}</b> `,
+                        '</div>',
+                        '<div style="margin-bottom: 6px;">',
+                        'Merit points: <input size="6" name="merits" step="1" value="0" type="number" autocomplete="off"/>',
+                        '</div>',
+                        '<div style="margin-bottom: 6px;">',
+                        '<input style="margin-left: 5px" class="sendButton" value="Send" type="submit">',
+                        '<button type="button">Close</button>',
+                        '</div>',
+                        '</div>',
+                        '<div class="result" style="display: none">',
+                        '</div>',
+                        '<div class="loading" style="display: none">',
+                        '<span>Loading...</span>',
+                        '</div>',
+                        '</form>',
+                        '</div>',
+                        '</td>'
+                    ].join("");
+                    merit[i].parentNode.parentNode.parentNode.parentNode.appendChild(nodeForm);
+        
+                    nodeForm.getElementsByTagName('form')[0].addEventListener("submit", function (e) {
+                        e.preventDefault();
+                        nodeForm.querySelectorAll("div[class^=form]")[0].style.display = "none";
+                        nodeForm.querySelectorAll("div[class^=result]")[0].style.display = "none";
+                        nodeForm.querySelectorAll("div[class^=loading]")[0].style.display = "block";
+            
+                        let xhttp = new XMLHttpRequest();
+                        xhttp.onreadystatechange = function () {
+                            if (this.readyState === 4 && this.status === 200) {
+                                let msgResult = "Error, please check again.";
+                                let responseResult = this.response.match(/<tr class="windowbg">(.*?)<\/tr>/s);
+                                if (responseResult !== null && responseResult[1] !== undefined) {
+                                    msgResult = responseResult[1].replace(/<(.|\n|\s|\r)*?>/g, '').trim();
+                                }
+                                nodeForm.querySelectorAll("div[class^=form]")[0].style.display = "block";
+                                nodeForm.querySelectorAll("div[class^=result]")[0].style.display = "block";
+                                nodeForm.querySelectorAll("div[class^=loading]")[0].style.display = "none";
+                    
+                                if (this.response.includes("<title>An Error Has Occurred!</title>")) {
+                                    nodeForm.querySelectorAll("div[class^=result]")[0].innerHTML = "<span>" + msgResult + "</span>";
+                                } else if (this.response.includes("#msg" + msgId)) {
+                                    nodeForm.querySelectorAll("div[class^=result]")[0].innerHTML = "<span>Merit added.</span>";
+                                    let url = new URL(window.location);
+                                    let topicId = url.searchParams.get("topic");
+                                    topicId = (topicId.includes(".") ? topicId.split(".")[0] : topicId);
+                                    window.location.href = `https://bitcointalk.org/index.php?topic=${topicId}.msg${msgId}#msg${msgId}`;
+                                } else {
+                                    nodeForm.querySelectorAll("div[class^=result]")[0].innerHTML = "<span>Server response indeterminate.</span>";
+                                }
+                            }
+                        };
+                        xhttp.open("POST", "https://bitcointalk.org/index.php?action=merit", true);
+                        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                        xhttp.send("msgID=" + msgId + "&sc=" + sesc + "&merits=" + e.target.elements["merits"].value);
+                    });
+                    nodeForm.getElementsByTagName("button")[0].addEventListener("click", function () {
+                        document.getElementById('merit' + msgId).style.display = "none";
+                        nodeForm.querySelectorAll("div[class^=result]")[0].style.display = "none";
+                    });
+                }
+            });
         }
     },
     displayPostPins: function (currentListPost) {
@@ -303,7 +323,7 @@ const Bitcointalk = {
             pinsPostSpan[i].remove();
         }
         if (value === "off") {
-            if(document.getElementsByClassName("postsPinned").length > 0) {
+            if (document.getElementsByClassName("postsPinned").length > 0) {
                 document.getElementsByClassName("postsPinned")[0].remove();
             }
             return;
@@ -374,7 +394,7 @@ const Bitcointalk = {
         divNode.innerHTML = `<img src="${toTop}" alt="to-top" height="36"/>`;
         document.getElementById('footerarea').appendChild(divNode);
         
-        window.onscroll = function() {
+        window.onscroll = function () {
             if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
                 divNode.style.display = "block";
             } else {
@@ -417,12 +437,25 @@ const Bitcointalk = {
                     post.querySelector(".smalltext i").removeChild(myMerit);
                     post.querySelector(".smalltext i").removeChild(myScore);
                     allMerits[0].before(myScore);
-                    if(allMerits.length > 0)
-                    myScore.after(document.createElement("div").innerHTML=", ");
+                    if (allMerits.length > 0)
+                        myScore.after(document.createElement("div").innerHTML = ", ");
                     myScore.before(myMerit)
                 }
             }
         })
+    },
+    enhancedReportToModeratorUI: function () {
+        if (document.location.href.match(/https:\/\/bitcointalk.org\/index.php\?action=profile;(.*?)sa=showPosts/s)) {
+            let button = document.querySelectorAll("span[class=middletext]");
+            let flagIcon = chrome.runtime.getURL(`icons/flag.png`);
+            
+            [...document.querySelectorAll("td[class=middletext] a:last-of-type")].forEach((post, i) => {
+                let a = document.createElement("a");
+                a.setAttribute("href", post.getAttribute("href").replace("index.php?", "index.php?action=reporttm;").replace(".msg", ";msg="));
+                a.innerHTML = `<img src="${flagIcon}" alt="Reply" align="middle"> <b>Report to moderator</b>`;
+                button[(i + 1)].prepend(a);
+            });
+        }
     }
 };
 
