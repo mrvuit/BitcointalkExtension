@@ -11,7 +11,7 @@ This extension summarizes the features that members prefer, making it easier for
 # Info:
 - Open source: https://github.com/mrvuit/BitcointalkExtension
 - Can be installed on all browsers with Chromemui core: Chrome, Brave, Microsoft Edge... (I will try with Firefox in the future.)
-- Latest version: 2.3
+- Latest version: 2.5
 
 # Features:
 - Change the theme
@@ -25,6 +25,7 @@ This extension summarizes the features that members prefer, making it easier for
 - Highlight your username in merit (Always on)
 - Show icon go to top (Always on)
 - Enhanced Report To Moderator UI (Always on)
+- Show Bitcoin & Ethereum price
 
 The post on Bitcointalk: https://bitcointalk.org/index.php?topic=5178297
 
