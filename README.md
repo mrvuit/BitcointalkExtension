@@ -19,7 +19,7 @@ This extension summarizes the features that members prefer, making it easier for
 - Block avatar
 - Open external links in a new tab (Always on)
 - Change the font size
-- Enhanced Merit UI
+- Enhanced Merit UI (Always on)
 - Pin multiple post or comment
 - Show total merit in post (Always on)
 - Highlight your username in merit (Always on)
