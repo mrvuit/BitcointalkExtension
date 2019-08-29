@@ -24,6 +24,7 @@ This extension summarizes the features that members prefer, making it easier for
 - Show total merit in post (Always on)
 - Highlight your username in merit (Always on)
 - Show icon go to top (Always on)
+- Enhanced Report To Moderator UI (Always on)
 
 The post on Bitcointalk: https://bitcointalk.org/index.php?topic=5178297
 
