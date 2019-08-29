@@ -9,6 +9,7 @@ chrome.storage.local.get('bitcointalk', function (storage) {
     Bitcointalk.sumMerit();
     Bitcointalk.highlightMyNameInMerit();
     Bitcointalk.enhancedReportToModeratorUI();
+    Bitcointalk.toggleMerit();
     
     if (typeof Object.keys(storage) !== 'undefined' && Object.keys(storage).length > 0) {
         Object.keys(storage.bitcointalk).map(function (key) {
@@ -31,8 +32,8 @@ const Bitcointalk = {
             case  "theme":
                 this.toggleTheme(value);
                 break;
-            case "merit":
-                this.toggleMerit(value);
+            case "price":
+                this.displayBitcoinPrice(value);
                 break;
             case "zoom":
                 this.zoomFontSize(value, event);
@@ -64,7 +65,7 @@ const Bitcointalk = {
     },
     httpGet: function (theUrl, callback) {
         fetch(theUrl).then(response => response.text()).then(html => {
-           callback(html);
+            callback(html);
         });
     },
     externalLink: function () {
@@ -123,8 +124,8 @@ const Bitcointalk = {
             });
         }
     },
-    toggleMerit: function (value) {
-        if (window.location.href.includes("https://bitcointalk.org/index.php?topic=") && value === "on") {
+    toggleMerit: function () {
+        if (window.location.href.includes("https://bitcointalk.org/index.php?topic=")) {
             let sesc = document.querySelectorAll("td.maintab_back a[href*='index.php?action=logout;'");
             if (sesc.length === 0) {
                 return;
@@ -135,21 +136,21 @@ const Bitcointalk = {
             if (merit.length === 0) {
                 return;
             }
-    
+            
             let sMerit = 0, totalMerit = 0;
             this.httpGet(merit[0].getAttribute('href'), html => {
                 sMerit = /You have <b>([0-9]+)<\/b> sendable/.exec(html)[1];
                 totalMerit = /You have received a total of <b>([0-9]+)<\/b> merit./.exec(html)[1];
-    
+                
                 for (let i = 0; i < merit.length; i++) {
                     let msgId = /msg=([0-9]+)/.exec(merit[i].href)[1];
-        
+                    
                     merit[i].setAttribute('data-href', merit[i].getAttribute('href'));
                     merit[i].setAttribute('href', "javascript:void(0)");
-        
+                    
                     merit[i].getElementsByTagName("span")[0].setAttribute("class", "openMerit");
                     merit[i].getElementsByTagName("span")[0].setAttribute("id", "open" + msgId);
-        
+                    
                     merit[i].getElementsByTagName("span")[0].addEventListener("click", function (e) {
                         e.preventDefault();
                         nodeForm.querySelectorAll("div[class^=result]")[0].style.display = "none";
@@ -159,7 +160,7 @@ const Bitcointalk = {
                             document.getElementById('merit' + msgId).style.display = "block";
                         }
                     });
-        
+                    
                     let nodeForm = document.createElement('tr');
                     nodeForm.innerHTML = [
                         '<td colspan="3" align="right">',
@@ -173,7 +174,7 @@ const Bitcointalk = {
                         'Merit points: <input size="6" name="merits" step="1" value="0" type="number" autocomplete="off"/>',
                         '</div>',
                         '<div style="margin-bottom: 6px;">',
-                        '<input style="margin-left: 5px" class="sendButton" value="Send" type="submit">',
+                        '<input style="margin-right: 5px" class="sendButton" value="Send" type="submit">',
                         '<button type="button">Close</button>',
                         '</div>',
                         '</div>',
@@ -187,13 +188,13 @@ const Bitcointalk = {
                         '</td>'
                     ].join("");
                     merit[i].parentNode.parentNode.parentNode.parentNode.appendChild(nodeForm);
-        
+                    
                     nodeForm.getElementsByTagName('form')[0].addEventListener("submit", function (e) {
                         e.preventDefault();
                         nodeForm.querySelectorAll("div[class^=form]")[0].style.display = "none";
                         nodeForm.querySelectorAll("div[class^=result]")[0].style.display = "none";
                         nodeForm.querySelectorAll("div[class^=loading]")[0].style.display = "block";
-            
+                        
                         let xhttp = new XMLHttpRequest();
                         xhttp.onreadystatechange = function () {
                             if (this.readyState === 4 && this.status === 200) {
@@ -205,7 +206,7 @@ const Bitcointalk = {
                                 nodeForm.querySelectorAll("div[class^=form]")[0].style.display = "block";
                                 nodeForm.querySelectorAll("div[class^=result]")[0].style.display = "block";
                                 nodeForm.querySelectorAll("div[class^=loading]")[0].style.display = "none";
-                    
+                                
                                 if (this.response.includes("<title>An Error Has Occurred!</title>")) {
                                     nodeForm.querySelectorAll("div[class^=result]")[0].innerHTML = "<span>" + msgResult + "</span>";
                                 } else if (this.response.includes("#msg" + msgId)) {
@@ -390,6 +391,7 @@ const Bitcointalk = {
     scrollToTop: function () {
         let toTop = chrome.runtime.getURL(`icons/to-top.png`);
         let divNode = document.createElement("div");
+        let dialogPrice = document.getElementsByClassName("dialog-price");
         divNode.style = "display: none;position: fixed;bottom: 20px;right: 30px;z-index: 99;cursor: pointer;padding: 15px;border-radius: 4px;";
         divNode.innerHTML = `<img src="${toTop}" alt="to-top" height="36"/>`;
         document.getElementById('footerarea').appendChild(divNode);
@@ -397,8 +399,10 @@ const Bitcointalk = {
         window.onscroll = function () {
             if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
                 divNode.style.display = "block";
+                if(dialogPrice.length > 0) dialogPrice[0].style.display = "block";
             } else {
                 divNode.style.display = "none";
+                if(dialogPrice.length > 0) dialogPrice[0].style.display = "none";
             }
         };
         divNode.getElementsByTagName("img")[0].addEventListener("click", () => {
@@ -455,6 +459,48 @@ const Bitcointalk = {
                 a.innerHTML = `<img src="${flagIcon}" alt="Reply" align="middle"> <b>Report to moderator</b>`;
                 button[(i + 1)].prepend(a);
             });
+        }
+    },
+    displayBitcoinPrice: function (value) {
+        let header = document.querySelectorAll("td.catbg")[1];
+        if (value === "on") {
+            this.getAnStorage("storagePrice", storagePrice => {
+                let dialogPriceNode = document.createElement("div");
+                dialogPriceNode.style = "display: none;position: fixed;top: 0;right: 0;z-index: 100;padding: 10px;border-radius:50px;margin: 5px 5px 0px 0px;";
+                dialogPriceNode.setAttribute("class", "dialog-price catbg");
+                
+                
+                if (Object.keys(storagePrice).length > 0 && (storagePrice.timestamp + 600) > Math.floor(Date.now() / 1000)) {
+                    header.innerHTML = storagePrice.html;
+    
+                    dialogPriceNode.innerHTML = storagePrice.html;
+                    document.getElementsByClassName('tborder')[0].appendChild(dialogPriceNode);
+                } else {
+                    this.httpGet("https://api.etherscan.io/api?module=stats&action=ethprice&apikey=YourApiKeyToken", response => {
+                        response = JSON.parse(response);
+                        if (response.status === "1") {
+                            let html = [
+                                `$${parseFloat(response.result.ethusd * (1 / response.result.ethbtc)).toFixed(2)}/BTC`,
+                                ` | `,
+                                `$${parseFloat(response.result.ethusd).toFixed(2)}/ETH`
+                            ].join("");
+                            header.innerHTML = html;
+    
+                            dialogPriceNode.innerHTML = html;
+                            document.getElementsByClassName('tborder')[0].appendChild(dialogPriceNode);
+                            this.setStorage('storagePrice', {
+                                'html': html,
+                                'timestamp': Math.floor(Date.now() / 1000)
+                            });
+                        } else {
+                            header.innerHTML = "Can't get the price of Bitcoin";
+                        }
+                    });
+                }
+            });
+        } else {
+            let dialogPrice = document.getElementsByClassName("dialog-price");
+            if(dialogPrice.length > 0) dialogPrice[0].remove();
         }
     }
 };
